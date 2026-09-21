@@ -1,0 +1,3 @@
+[submodule "examples/uefinexus/repo"]
+	path = examples/uefinexus/repo
+	url = https://github.com/ziyingchen-dev/UefiNexus.git

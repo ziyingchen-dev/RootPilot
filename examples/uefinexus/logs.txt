@@ -1,0 +1,17 @@
+RootPilot test fixture: invalid Goto in the Memory Viewer
+
+Host integration test (run from the UefiNexus repository):
+  [PASS] Invalid goto status
+  [PASS] Invalid goto reports error
+  Integration tests finished.
+
+Note: the current test checks the error status and error report, but does not
+check whether the page address remains unchanged.
+
+Source-based code-path trace (not captured from a QEMU session):
+  Current page address: 0x1000
+  User enters invalid address: 0x9000
+  Status line: Invalid address range - staying on current page
+  Error report: Invalid goto address
+  Expected: page address and cursor remain on the current valid page
+  Concern: verify that the internal cursor state also remains unchanged
