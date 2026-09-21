@@ -1,0 +1,5 @@
+HDR enabled
+Capture started
+FrameSync timeout
+Capture stalled
+No frame received
