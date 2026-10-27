@@ -98,6 +98,82 @@ C: Review and challenge A and B
 
 The goal is not simply to increase automation, but to improve investigation quality and reduce investigation failures such as local traps, design-history loss, context contamination, and confidence inflation.
 
+## A/B Investigation Experiment
+
+The CLI can save two independent investigation reports and run a Devil's Advocate review over them.
+
+### Cloud Provider: Mistral
+
+Use Mistral only for public or organization-approved non-confidential cases:
+
+```bash
+export MISTRAL_API_KEY='your-api-key'
+
+python3 main.py investigate examples/uefinexus \
+  --provider mistral \
+  --model magistral-medium-latest \
+  --data-policy standard \
+  --output A.json
+
+python3 main.py investigate examples/uefinexus \
+  --provider mistral \
+  --model magistral-medium-latest \
+  --data-policy standard \
+  --output B.json
+
+python3 main.py devil-review examples/uefinexus A.json B.json \
+  --provider mistral \
+  --model magistral-medium-latest \
+  --data-policy standard \
+  --output C.json
+```
+
+### Local Provider: Ollama
+
+Use local Ollama for NDA-protected or confidential cases.
+
+The default Ollama model is `qwen2.5:1.5b`:
+
+```bash
+python3 main.py investigate <case-directory> \
+  --provider ollama \
+  --data-policy confidential \
+  --output A.json
+
+python3 main.py investigate <case-directory> \
+  --provider ollama \
+  --data-policy confidential \
+  --output B.json
+
+python3 main.py devil-review <case-directory> A.json B.json \
+  --provider ollama \
+  --data-policy confidential \
+  --output C.json
+```
+
+To use the optional coding model, add:
+
+```bash
+--model qwen2.5-coder:3b
+```
+
+Each `investigate --output` invocation runs an independent instance of the existing single-investigation workflow. The Devil's Advocate review reloads the case evidence and evaluates both reports against it, including shared assumptions, blind spots, design-history risks, and investigation conflicts. It does not generate fixes or attempt to reach consensus.
+
+Both subcommands accept:
+
+- `--provider ollama|mistral`
+- `--model <model-name>` to override the provider's default model
+- `--data-policy standard|confidential` (default: `standard`)
+
+If `--model` is omitted, RootPilot uses:
+
+- Mistral: `magistral-medium-latest`, or the value of `MISTRAL_MODEL`
+- Ollama: `qwen2.5:1.5b`, or the value of `ROOTPILOT_MODEL`
+
+Confidential mode rejects Mistral and permits Ollama only when `OLLAMA_HOST` is unset or points to `localhost`, `127.0.0.1`, or `::1`.
+
+Saved A, B, and C reports include application-generated provider, model, and data-policy metadata. API keys are never stored in report metadata.
+
 ---
 
 # License
