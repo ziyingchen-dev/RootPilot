@@ -23,6 +23,17 @@ Return exactly one valid JSON object with this schema:
 
 {{
   "evidence_summary": "1 to 2 sentences describing the strongest observed evidence",
+  "observed_facts": ["directly observed facts from supplied evidence"],
+  "reporter_assumptions": ["claims or interpretations in the issue report not independently verified"],
+  "competing_interpretations": ["plausible explanations for conflicts in the evidence"],
+  "design_intent_status": "verified | missing | conflicting",
+  "design_intent_evidence": [
+    {{
+      "source_type": "specification | design_document | adr | commit_rationale | authoritative_test",
+      "reference": "specific supplied document, record, or statement",
+      "claim": "specific claim from that source establishing intended behavior"
+    }}
+  ],
   "hypotheses": [
     "most likely evidence-supported root cause",
     "second most likely root cause",
@@ -53,10 +64,19 @@ Investigation rules:
 10. If feedback says a change or experiment failed, do not treat the hypothesis as disproven: the change may have been incomplete or wrong. Lower the hypothesis only if the change should have worked were it true, raise the others, and state what the failed result rules out.
 11. Never propose a change that feedback says was already tried, including the same edit with a different value.
 12. Do not invent measurements, runtime behavior, or causal links that are not present in the supplied evidence.
+13. Treat issue.md as an unverified issue report, not authoritative design documentation. Separate observed behavior from the reporter's interpretation.
+14. Do not assume expected behavior stated in issue.md is correct unless independent evidence supports it. Identify which claims come from direct evidence and which are reporter assumptions or inferences.
+15. When code, messages, tests, or documentation disagree, do not assume which one is authoritative. Consider that the code may be wrong, the message/test/documentation may be outdated, the behavior may reflect an undocumented design change, or the available evidence may be insufficient to determine intent.
+16. Set design_intent_status to "verified" only when independent supplied evidence establishes intended behavior; use "missing" when intent evidence is absent and "conflicting" when supplied evidence supports incompatible interpretations.
+17. If intended behavior cannot be verified, recommend obtaining design-history evidence and do not propose a behavior-changing patch.
+18. If design_intent_status is "verified", provide design_intent_evidence as a non-empty list of complete objects with non-empty source_type, reference, and claim strings. Use only these authoritative source_type values: specification, design_document, adr, commit_rationale, or authoritative_test.
+19. Never label issue.md as an approved requirement or authoritative design evidence. Never invent or upgrade a source into an authoritative source type. Do not use logs, status messages, reporter expectations, model inference, or agreement between investigators as verification.
+20. A behavior test is authoritative only when the test explicitly documents intended behavior, not merely current behavior.
+21. If source authority is uncertain, use design_intent_status = "missing" or "conflicting" and return an empty design_intent_evidence list. Do not invent design evidence or references.
 
 Change proposal rules:
 1. Return zero or one proposed change.
-2. Return a change only when the supplied evidence directly supports the cause and the code correction is clear. Relevant-looking code alone is not sufficient evidence.
+2. Return a change only when the supplied evidence directly supports the cause, the intended behavior is verified, and the code correction is clear. Relevant-looking code alone is not sufficient evidence.
 3. When the cause is uncertain, key runtime behavior is unknown, or more diagnosis is needed, return an empty list. Do not guess at parameter values, thresholds, or configuration changes; recommend a diagnostic check instead.
 4. file must exactly match a path shown after File: in SOURCE FILES.
 5. original must be copied verbatim from the target file.
