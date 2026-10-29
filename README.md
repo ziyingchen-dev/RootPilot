@@ -86,7 +86,7 @@ Recent investigation experiments uncovered problems that were not part of the or
 
 Current implementations, workflows, and research directions should be considered experimental and may change significantly as new investigation challenges are discovered.
 
-One possible future direction is to explore multiple independent investigation sessions:
+The current experimental workflow uses multiple independent investigation sessions:
 
 ```text
 A: Investigate
@@ -173,6 +173,60 @@ If `--model` is omitted, RootPilot uses:
 Confidential mode rejects Mistral and permits Ollama only when `OLLAMA_HOST` is unset or points to `localhost`, `127.0.0.1`, or `::1`.
 
 Saved A, B, and C reports include application-generated provider, model, and data-policy metadata. API keys are never stored in report metadata.
+
+## Web UI
+
+RootPilot also provides a local Vue dashboard backed by FastAPI.
+
+The dashboard supports the same A/B/C investigation workflow:
+
+```text
+A: Independent Investigation
+B: Independent Investigation
+C: Devil's Advocate Review
+```
+
+A and B investigate the same case independently. C becomes available after both investigations complete with the same case, provider, model, and data policy.
+
+### Independent Investigations
+
+![RootPilot A/B independent investigations](docs/images/rootpilot-abc-ui.png)
+
+### Devil's Advocate Review
+
+![RootPilot Devil's Advocate review](docs/images/rootpilot-devil-review.png)
+
+### Run Locally
+
+Start the FastAPI backend:
+
+```bash
+python3 -m uvicorn api_server:app \
+  --host 0.0.0.0 \
+  --port 8000
+```
+
+Start the Vue frontend in another terminal:
+
+```bash
+npm run dev --prefix ui -- --host 0.0.0.0
+```
+
+Open:
+
+```text
+http://localhost:5173
+```
+
+When using Mistral, set `MISTRAL_API_KEY` in the same terminal that starts FastAPI:
+
+```bash
+export MISTRAL_API_KEY='your-api-key'
+```
+
+Patches are applied only after explicit user approval. Blocked or non-actionable investigations do not display an **Accept** button.
+
+Running A or B again clears the previous Devil Review so that C always reviews the latest investigation pair.
 
 ---
 
